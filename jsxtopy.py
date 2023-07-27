@@ -11,7 +11,7 @@ Button({'radius': 'md', 'size': 'lg', 'compact': True, 'uppercase': True}, "Sett
 """
 
 
-# Not all attribute values ned ot be strings...
+# Not all attribute values need to be strings...
 def to_num(str_val):
     try:
         if str_val.lower() in ['true', 'false']:
