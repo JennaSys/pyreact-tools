@@ -10,6 +10,8 @@ Example:
 Button({'radius': 'md', 'size': 'lg', 'compact': True, 'uppercase': True}, "Settings")
 """
 
+
+# Not all attribute values ned ot be strings...
 def to_num(str_val):
     try:
         if str_val.lower() in ['true', 'false']:
@@ -23,6 +25,7 @@ def to_num(str_val):
         return str_val
 
 
+# Fixes escaped attribute values and attribute singletons,
 def clean_vals(jsx):
     jsx_parts = [f'<{child}'.strip() for child in jsx.split('<')][1:]
     new_jsx = []
@@ -57,6 +60,7 @@ def clean_vals(jsx):
     return ''.join(new_jsx)
 
 
+# Recursively turns JSX string into string of functions
 def jsxtopy(jsx, level=1):
     INDENT = 4
     jsx_ = clean_vals(jsx)
@@ -86,9 +90,9 @@ def jsxtopy(jsx, level=1):
         if len(element) > 0:
             child_jsx = ''.join(child_str_lst)
             # print("child_jsx:", child_jsx)
-            children = jsxtopy(child_jsx, level + 1)
+            children = jsxtopy(child_jsx, level + 1)  # Do the child conversions first
             py_root.append(f'{tag}({attrib_str},\n{" " * INDENT * level}{children}\n{" " * INDENT * (level - 1)})')
-        else:
+        else:  # InnerHTML is just text here
             text_child = '' if element.text is None else f', "{element.text.strip()}"'
             py_root.append(f'{tag}({attrib_str}{text_child})')
 
