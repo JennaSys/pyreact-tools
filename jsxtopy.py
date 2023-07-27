@@ -101,6 +101,8 @@ def jsxtopy(jsx, level=1):
 
 if __name__ == '__main__':
     # TODO: Add ability to use this as a CLI function
+    # TODO: Make module pip installable
+    # TODO: Maybe make it a PyCharm live template?
 
     test_jsx = [
         '<div id="root">Loading...</div>',
