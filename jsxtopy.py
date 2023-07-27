@@ -5,11 +5,9 @@ Converts a JSX fragment to a Python function equivalent
 
 Example:
 
-<Button radius="md" size="lg" compact uppercase>
-  Settings
-</Button>
+<Button radius="md" size="lg" compact uppercase> Settings </Button>
 
-Button({'radius': "md", 'size': "lg", 'compact': True,  'uppercase': True}, "Settings")
+Button({'radius': 'md', 'size': 'lg', 'compact': True, 'uppercase': True}, "Settings")
 """
 
 def to_num(str_val):
@@ -98,8 +96,11 @@ def jsxtopy(jsx, level=1):
 
 
 if __name__ == '__main__':
+    # TODO: Add ability to use this as a CLI function
+
     test_jsx = [
         '<div id="root">Loading...</div>',
+        """<Button radius="md" size="lg" compact uppercase> Settings </Button>""",
         """    <SimpleGrid cols={3}>
       <Text variant="outline">1</Text>
       <Text>2</Text><Text>3</Text>
