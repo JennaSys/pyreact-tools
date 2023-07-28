@@ -49,7 +49,7 @@ def clean_vals(jsx):
                     continue
 
                 if not end_tag and '=' not in attrib and attrib[-1:] != '/':  # Handle boolean attributes with no value
-                    attrib = f'{attrib}=true' if attrib.strip()[-1] != '>' else f'{attrib[:-1]}=true>'
+                    attrib = f'{attrib}=true'
 
                 end_tag = not end_tag and attrib.strip()[-1] == '>'
 
@@ -73,6 +73,7 @@ def jsxtopy(jsx, level=1):
 
     for element in fragments:
         tag = tmp_jsx.strip().split('>')[0].split()[0][1:]  # lxml forces lower case so grab the first tag from the raw text stripping off any attributes
+        fmt_tag = tag.capitalize() if tag.islower() else tag
         attribs = {k: to_num(v) for k, v in element.attrib.items()}  # Represent numeric values as numbers instead of strings
 
         # This sets things up for getting the right tag next in the next pass
@@ -93,10 +94,10 @@ def jsxtopy(jsx, level=1):
             child_jsx = ''.join(child_str_lst)
             # print("child_jsx:", child_jsx)
             children = jsxtopy(child_jsx, level + 1)  # Do the child conversions first
-            py_root.append(f'{tag}({attrib_str},\n{" " * INDENT * level}{children}\n{" " * INDENT * (level - 1)})')
+            py_root.append(f'{fmt_tag}({attrib_str},\n{" " * INDENT * level}{children}\n{" " * INDENT * (level - 1)})')
         else:  # InnerHTML is just text here
             text_child = '' if element.text is None else f', "{element.text.strip()}"'
-            py_root.append(f'{tag}({attrib_str}{text_child})')
+            py_root.append(f'{fmt_tag}({attrib_str}{text_child})')
 
     return f',\n{" "*INDENT*(level-1)}'.join(py_root)
 
