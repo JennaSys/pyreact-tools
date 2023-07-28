@@ -6,11 +6,13 @@ I got tired of having to manually convert JSX code to Python functions with dict
 
 For example, this JSX code:
 ```jsx
-<Button radius="md" size="lg" compact uppercase>Settings</Button>
+<div id="root"><Button radius="md" size="lg" compact uppercase>Settings</Button></div>
 ```
 will get converted to this Python code:
 ```python
-Button({'radius': 'md', 'size': 'lg', 'compact': True, 'uppercase': True}, "Settings")
+div({'id': 'root'},
+    Button({'radius': 'md', 'size': 'lg', 'compact': True, 'uppercase': ''}, "Settings=true")
+)
 ```
 
 ## Resources

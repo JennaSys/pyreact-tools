@@ -5,9 +5,11 @@ Converts a JSX fragment to a Python function equivalent
 
 Example:
 
-<Button radius="md" size="lg" compact uppercase> Settings </Button>
+<div id="root"><Button radius="md" size="lg" compact uppercase>Settings</Button></div>
 
-Button({'radius': 'md', 'size': 'lg', 'compact': True, 'uppercase': True}, "Settings")
+div({'id': 'root'},
+    Button({'radius': 'md', 'size': 'lg', 'compact': True, 'uppercase': ''}, "Settings=true")
+)
 """
 
 
@@ -106,8 +108,8 @@ if __name__ == '__main__':
 
     test_jsx = [
         '<div id="root">Loading...</div>',
-        """<Button radius="md" size="lg" compact uppercase> Settings </Button>""",
-        """    <SimpleGrid cols={3}>
+        """<div id="root"><Button radius="md" size="lg" compact uppercase>Settings</Button></div>""",
+        """<SimpleGrid cols={3}>
       <Text variant="outline">1</Text>
       <Text>2</Text><Text>3</Text>
       <Text>4</Text>
