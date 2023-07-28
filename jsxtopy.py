@@ -7,7 +7,7 @@ Example:
 
 <div id="root"><Button radius="md" size="lg" compact uppercase>Settings</Button></div>
 
-div({'id': 'root'},
+Div({'id': 'root'},
     Button({'radius': 'md', 'size': 'lg', 'compact': True, 'uppercase': True}, "Settings")
 )
 """

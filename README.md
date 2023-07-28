@@ -10,7 +10,7 @@ For example, this JSX code:
 ```
 will get converted to this Python code:
 ```python
-div({'id': 'root'},
+Div({'id': 'root'},
     Button({'radius': 'md', 'size': 'lg', 'compact': True, 'uppercase': True}, "Settings")
 )
 ```
