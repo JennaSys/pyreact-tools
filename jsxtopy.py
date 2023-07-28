@@ -8,7 +8,7 @@ Example:
 <div id="root"><Button radius="md" size="lg" compact uppercase>Settings</Button></div>
 
 div({'id': 'root'},
-    Button({'radius': 'md', 'size': 'lg', 'compact': True, 'uppercase': ''}, "Settings=true")
+    Button({'radius': 'md', 'size': 'lg', 'compact': True, 'uppercase': True}, "Settings")
 )
 """
 
@@ -29,7 +29,7 @@ def to_num(str_val):
 
 # Fixes escaped attribute values and attribute singletons,
 def clean_vals(jsx):
-    jsx_parts = [f'<{child}'.strip() for child in jsx.split('<')][1:]
+    jsx_parts = [f'{child}'.strip() for child in jsx.split('>')][:-1]
     new_jsx = []
     for part in jsx_parts:
         if part[0] == '<':
@@ -48,15 +48,15 @@ def clean_vals(jsx):
                     new_attribs.append(attrib)
                     continue
 
-                if not end_tag and '=' not in attrib and attrib[-2:] != '/>':  # Handle boolean attributes with no value
+                if not end_tag and '=' not in attrib and attrib[-1:] != '/':  # Handle boolean attributes with no value
                     attrib = f'{attrib}=true' if attrib.strip()[-1] != '>' else f'{attrib[:-1]}=true>'
 
                 end_tag = not end_tag and attrib.strip()[-1] == '>'
 
                 new_attribs.append(attrib.replace('{', '').replace('}', ''))  # Remove any {} from values
-            new_jsx.append(' '.join(new_attribs))
+            new_jsx.append(f"{' '.join(new_attribs)}>")
         else:
-            new_jsx.append(part)
+            new_jsx.append(f"{part}>")
 
     # Put it all back together...
     return ''.join(new_jsx)
