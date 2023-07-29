@@ -179,7 +179,7 @@ def test():
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='jsxtopy.py', description='Converts a JSX fragment to a Python function equivalent')
+    parser = argparse.ArgumentParser(prog='jsxtopy', description='Converts a JSX fragment to a Python function equivalent')
     group = parser.add_mutually_exclusive_group()
     group.add_argument("'jsx'", help="JSX string to convert (If not supplied, will try to use what is in clipboard)", nargs='?', const='JSX copied from clipboard')
     group.add_argument("--test", help="Run test JSX", action="store_true")

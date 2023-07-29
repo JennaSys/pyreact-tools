@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='jsxtopy',
-    version='0.1.0',
+    version='0.1.1',
     description="Converts a JSX fragment to a Python function equivalent",
     license="MIT",
     python_requires=">=3.8",
