@@ -203,8 +203,8 @@ def main():
 
 
 if __name__ == '__main__':
-    # TODO: Handle array [ ]
-    # TODO: Handle object {{ }}
-    # TODO: Handle fragment <> </>
+    # TODO: Handle array as attribute value [ ]  -> [ ]
+    # TODO: Handle object as attribute value {{ }}  ->  { }
+    # TODO: Handle fragment element <> </>  ->  Fragment(None)
 
     main()
