@@ -15,6 +15,20 @@ Div({'id': 'root'},
 )
 ```
 
+## Usage:
+```text
+usage: jsxtopy.py [-h] [--test] ['jsx']
+
+Converts a JSX fragment to a Python function equivalent
+
+positional arguments:
+  'jsx'       JSX string to convert (If not supplied, will try to use what is in clipboard)
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --test      Run test JSX
+```
+
 ## Resources
 - https://pyreact.com
 - https://www.transcrypt.org
