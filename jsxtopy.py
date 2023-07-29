@@ -1,4 +1,10 @@
+#!/usr/bin/env python3
+import sys
+
 import lxml.html
+import argparse
+import pyperclip
+
 
 """
 Converts a JSX fragment to a Python function equivalent
@@ -104,11 +110,14 @@ def jsxtopy(jsx, level=1):
     return f',\n{" "*INDENT*(level-1)}'.join(py_root)
 
 
-if __name__ == '__main__':
-    # TODO: Add ability to use this as a CLI function
-    # TODO: Make module pip installable
-    # TODO: Maybe make it a PyCharm live template?
+def main(jsx):
+    print(f"\njsx:\n{jsx}\n")
+    pyified = jsxtopy(jsx)
+    print(f"pyified:\n{pyified}\n")
+    return pyified
 
+
+def test():
     test_jsx = [
         '<div id="root">Loading...</div>',
         """<div id="root"><Button radius="md" size="lg" compact uppercase>Settings</Button></div>""",
@@ -167,4 +176,34 @@ if __name__ == '__main__':
         pyified = jsxtopy(jsx)
         print(f"pyified:\n{pyified}\n")
         print()
+
+
+if __name__ == '__main__':
+    # TODO: Make module pip installable
+
+    parser = argparse.ArgumentParser(prog='jsxtopython.py', description='Converts a JSX fragment to a Python function equivalent')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("'jsx'", help="JSX string to convert (If not supplied, will try to use what is in clipboard)", nargs='?', const='JSX copied from clipboard')
+    group.add_argument("--test", help="Run test JSX", action="store_true")
+    args = parser.parse_args()
+
+    if args.test:
+        print("--- TESTING ---\n")
+        test()
+    else:
+        if len(sys.argv) > 1:
+            jsx_text = sys.argv[1]
+            main(jsx_text)
+            # print("sys.argv:", sys.argv)
+        else:
+            jsx_text = pyperclip.paste()
+            if jsx_text and jsx_text.strip()[0] == '<' and jsx_text.strip()[-1] == '>':
+                result = main(jsx_text)
+                pyperclip.copy(result)
+            else:
+                print("ERROR: Invalid JSX in clipboard!")
+
+
+
+
 
