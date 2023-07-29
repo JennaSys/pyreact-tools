@@ -110,7 +110,7 @@ def jsxtopy(jsx, level=1):
     return f',\n{" "*INDENT*(level-1)}'.join(py_root)
 
 
-def main(jsx):
+def run(jsx):
     print(f"\njsx:\n{jsx}\n")
     pyified = jsxtopy(jsx)
     print(f"pyified:\n{pyified}\n")
@@ -178,9 +178,7 @@ def test():
         print()
 
 
-if __name__ == '__main__':
-    # TODO: Make module pip installable
-
+def main():
     parser = argparse.ArgumentParser(prog='jsxtopy.py', description='Converts a JSX fragment to a Python function equivalent')
     group = parser.add_mutually_exclusive_group()
     group.add_argument("'jsx'", help="JSX string to convert (If not supplied, will try to use what is in clipboard)", nargs='?', const='JSX copied from clipboard')
@@ -193,17 +191,16 @@ if __name__ == '__main__':
     else:
         if len(sys.argv) > 1:
             jsx_text = sys.argv[1]
-            main(jsx_text)
+            run(jsx_text)
             # print("sys.argv:", sys.argv)
         else:
             jsx_text = pyperclip.paste()
             if jsx_text and jsx_text.strip()[0] == '<' and jsx_text.strip()[-1] == '>':
-                result = main(jsx_text)
+                result = run(jsx_text)
                 pyperclip.copy(result)
             else:
                 print("ERROR: Invalid JSX in clipboard!")
 
 
-
-
-
+if __name__ == '__main__':
+    main()

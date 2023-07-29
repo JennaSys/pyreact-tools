@@ -15,9 +15,14 @@ Div({'id': 'root'},
 )
 ```
 
+## Installation:
+```bash
+pip install git+https://github.com/JennaSys/pyreact-tools
+```
+
 ## Usage:
 ```text
-usage: jsxtopy.py [-h] [--test] ['jsx']
+usage: jsxtopy [-h] [--test] ['jsx']
 
 Converts a JSX fragment to a Python function equivalent
 
