@@ -194,6 +194,7 @@ def main():
             run(jsx_text)
             # print("sys.argv:", sys.argv)
         else:
+            print("JSX not provided, using clipboard contents...")
             jsx_text = pyperclip.paste()
             if jsx_text and jsx_text.strip()[0] == '<' and jsx_text.strip()[-1] == '>':
                 result = run(jsx_text)
