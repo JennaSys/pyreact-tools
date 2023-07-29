@@ -65,32 +65,34 @@ def clean_vals(jsx):
 # Recursively turns JSX string into string of functions
 def jsxtopy(jsx, level=1):
     INDENT = 4
+
     jsx_ = clean_vals(jsx)
     fragments = lxml.html.fragments_fromstring(jsx_)
+
     py_root = []
     child_str_lst = []
     tmp_jsx = jsx_
 
-    for element in fragments:
-        tag = tmp_jsx.strip().split('>')[0].split()[0][1:]  # lxml forces lower case so grab the first tag from the raw text stripping off any attributes
-        fmt_tag = tag.capitalize() if tag.islower() else tag
+    for element in fragments:  # The jsx parameter could be a list of many elements, so loop through them all
+        tag = tmp_jsx.strip().split('>')[0].split()[0][1:]  # lxml forces lower case so grab the tag name from the raw text, stripping off any attributes
+        fmt_tag = tag.capitalize() if tag.islower() else tag  # Native HTML tags like 'div' need to get capitalized
         attribs = {k: to_num(v) for k, v in element.attrib.items()}  # Represent numeric values as numbers instead of strings
 
-        # This sets things up for getting the right tag next in the next pass
+        # This sets things up for getting the proper tag next in the next pass through the loop
         tmp_str_lst = [f'<{child}'.strip() for child in tmp_jsx.split('<')][2:]
         if f'</{tag}>' in tmp_str_lst:
             idx = [tmp for tmp in tmp_str_lst].index(f'</{tag}>')
             if idx == 0:
                 tmp_str_lst = tmp_str_lst[1:]
             elif idx > 0:
-                child_str_lst = tmp_str_lst[:idx]
+                child_str_lst = tmp_str_lst[:idx]  # If there are child elements between the opening and closing tage, save these fragments for later
                 tmp_str_lst = tmp_str_lst[idx+1:]
 
-        tmp_jsx = ''.join(tmp_str_lst)
+        tmp_jsx = ''.join(tmp_str_lst)  # Put it all back together
         # print("tmp_jsx:", tmp_jsx)
 
-        attrib_str = str(attribs) if len(element.attrib) > 0 else None
-        if len(element) > 0:
+        attrib_str = str(attribs) if len(element.attrib) > 0 else None  # Convert the whole attrib dict to a single string for later
+        if len(element) > 0:  # There are child elements that need to be processed
             child_jsx = ''.join(child_str_lst)
             # print("child_jsx:", child_jsx)
             children = jsxtopy(child_jsx, level + 1)  # Do the child conversions first
