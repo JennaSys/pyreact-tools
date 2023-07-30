@@ -22,7 +22,7 @@ pip install git+https://github.com/JennaSys/pyreact-tools
 
 ## Usage:
 ```text
-usage: jsxtopy [-h] [-v] [-d] [--test] [jsx]
+usage: jsxtopy [-h] [-v] [-d] [--test] [--dev] [jsx]
 
 Converts a JSX fragment to a Python function equivalent
 
@@ -33,7 +33,8 @@ optional arguments:
   -h, --help     show this help message and exit
   -v, --verbose  Print original JSX and Python result to console
   -d, --dict     Create props as dict function instead of dict literal
-  --test         Run test JSX
+  --test         Run JSX unit tests
+  --dev          Run JSX development test
 ```
 
 ## Resources

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import ast
 import lxml.html
 import argparse
 import pyperclip
@@ -25,6 +26,8 @@ def to_num(str_val):
             return str_val.lower() == 'true'
         elif '.' in str_val:
             return float(str_val)
+        elif str_val[0] == '[' and str_val[-1] == ']':
+            return ast.literal_eval(str_val)
         else:
             return int(str_val)
 
@@ -41,6 +44,7 @@ def clean_vals(jsx):
             attribs = part.split()
             new_attribs = []
             in_quote = False
+            in_array = False
             end_tag = False
             for attrib in attribs:
                 if attrib[0] == '<':  # Skip tag But fix fragment
@@ -49,9 +53,19 @@ def clean_vals(jsx):
                     new_attribs.append(attrib)
                     continue
 
+                # Handle array as value
+                if not in_array:
+                    if "[" in attrib:
+                        in_array = True
+                        attrib = attrib.replace('{[', '"[').replace('{ [', '"[')
+                else:
+                    if "]" in attrib:
+                        in_array = False
+                        attrib = attrib.replace(']}', ']"').replace('] }', ']"')
+
                 end_quote = attrib.strip()[-1] in ["'", '"']
-                in_quote = any([in_quote, "'" in attrib, '"' in attrib]) and not end_quote
-                if in_quote or end_quote:  # Skip quoted strings
+                in_quote = any([in_quote, "'" in attrib, '"' in attrib]) and not (end_quote or in_array)
+                if in_quote or end_quote or in_array:  # Skip quoted strings
                     new_attribs.append(attrib)
                     continue
 
@@ -131,68 +145,15 @@ def run(jsx, use_dict=False, verbose=False):
     return pyified
 
 
-def test(use_dict):
-    test_jsx = [
-        '<div id="root">Loading...</div>',
-        """<div id="root"><Button radius="md" size="lg" compact uppercase>Settings</Button></div>""",
-        """<SimpleGrid cols={3}>
-      <Text variant="outline">1</Text>
-      <Text>2</Text><Text>3</Text>
-      <Text>4</Text>
-      <Text>5</Text>
-    </SimpleGrid>""",
-        """<div></div>""",
-        """<>
-        <div>1</div>
-      <div mx=5 my=11>2</div>
-      <div>3</div>
-      </>
-        """,
-        """<Group>
-              <Button variant="outline">1</Button>
-              <Button variant="outline">2</Button>
-              <Button p={3} radius="sm md" size="lg" compact uppercase>
-  Settings
-</Button>
-              <Switch
-      labelPosition="left"
-      label="I agree to sell my privacy"
-      size="md"
-      radius="lg"
-      color="red"
-      disabled
-    />
-            </Group>""",
-        """<Group>
-              <Button variant="outline">1</Button>
-              <Button variant="outline">2</Button>
-              <Button p={5.2} radius="sm md" size="lg" compact uppercase>
-  Settings
-</Button>
-              <Switch
-      labelPosition="left"
-      label="I agree to sell my privacy"
-      size="md"
-      radius="lg"
-      color="red"
-      disabled
-    />
-    <SimpleGrid cols={3}>
-      <div>1</div>
-      <div mx=7 my=2>2</div>
-      <div>3</div>
-      <div>4</div>
-      <div>5</div>
-    </SimpleGrid>
-    <MultiSelect
-      data={data}
-      label="Your favorite frameworks/libraries"
-      placeholder="Pick all that you like"
-    />
-            </Group>"""
-    ]
+def run_dev(use_dict):
+    test_jsx = ["""<NativeSelect
+      data={['React', 'Vue', 'Angular', 'Svelte']}
+      label="Select your favorite framework/library"
+      description="This is anonymous"
+      withAsterisk
+    />"""]
 
-    print("--- TESTING ---\n")
+    print("--- DEV TESTING ---\n")
     for jsx in test_jsx:
         print(f"jsx:\n{jsx}\n")
         pyified = jsxtopy(jsx, use_dict)
@@ -206,11 +167,18 @@ def main():
     parser.add_argument("-v", "--verbose", help="Print original JSX and Python result to console", action="store_true")
     parser.add_argument("-d", "--dict", help="Create props as dict function instead of dict literal", action="store_true")
     group.add_argument("jsx", help="JSX string to convert (If not supplied, will try to use what is in clipboard)", nargs='?', const='JSX copied from clipboard')
-    group.add_argument("--test", help="Run test JSX", action="store_true")
+    group.add_argument("--test", help="Run JSX unit tests", action="store_true")
+    group.add_argument("--dev", help="Run JSX development test", action="store_true")
     args = parser.parse_args()
 
     if args.test:
-        test(args.dict)
+        import pytest
+        import os
+
+        module_dir = os.path.dirname(__file__)
+        pytest.main(['-rA', os.path.join(module_dir, '../tests')])
+    elif args.dev:
+        run_dev(args.dict)
     else:
         if args.jsx:
             jsx_text = args.jsx
@@ -228,7 +196,6 @@ def main():
 
 
 if __name__ == '__main__':
-    # TODO: Handle array as attribute value [ ]  -> [ ]
     # TODO: Handle object as attribute value {{ }}  ->  { }
 
     main()
