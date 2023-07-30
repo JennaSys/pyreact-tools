@@ -21,17 +21,20 @@ Div({'id': 'root'},
 
 # Not all attribute values need to be strings...
 def to_num(str_val):
-    try:
-        if str_val.lower() in ['true', 'false']:
-            return str_val.lower() == 'true'
-        elif '.' in str_val:
-            return float(str_val)
-        elif str_val[0] == '[' and str_val[-1] == ']':
-            return ast.literal_eval(str_val)
-        else:
-            return int(str_val)
+    if str_val:
+        try:
+            if str_val.lower() in ['true', 'false']:
+                return str_val.lower() == 'true'
+            elif '.' in str_val:
+                return float(str_val)
+            elif str_val[0] == '[' and str_val[-1] == ']':
+                return ast.literal_eval(str_val)
+            else:
+                return int(str_val)
 
-    except ValueError:
+        except ValueError:
+            return str_val
+    else:
         return str_val
 
 
@@ -95,7 +98,7 @@ def jsxtopy(jsx, use_dict, level=1):
     tmp_jsx = jsx_
 
     for element in fragments:  # The jsx parameter could be a list of many elements, so loop through them all
-        tag = tmp_jsx.strip().split('>')[0].split()[0][1:]  # lxml forces lower case so grab the tag name from the raw text, stripping off any attributes
+        tag = tmp_jsx.strip().split('>')[0].split()[0][1:] if tmp_jsx.strip() else '' # lxml forces lower case so grab the tag name from the raw text, stripping off any attributes
         fmt_tag = tag.capitalize() if tag.islower() else tag  # Native HTML tags like 'div' need to get capitalized
         attribs = {k: to_num(v) for k, v in element.attrib.items()}  # Represent numeric values as numbers instead of strings
 
@@ -146,11 +149,14 @@ def run(jsx, use_dict=False, verbose=False):
 
 
 def run_dev(use_dict):
-    test_jsx = ["""<NativeSelect
-      data={['React', 'Vue', 'Angular', 'Svelte']}
-      label="Select your favorite framework/library"
-      description="This is anonymous"
-      withAsterisk
+    test_jsx = ["""<Select
+      maw={320}
+      mx="auto"
+      label="Your favorite framework/library"
+      placeholder="Pick one"
+      data={['React', 'Angular', 'Svelte', 'Vue']}
+      transitionProps={{ transition: 'pop-top-left', duration: 80, timingFunction: 'ease' }}
+      withinPortal
     />"""]
 
     print("--- DEV TESTING ---\n")
@@ -197,5 +203,7 @@ def main():
 
 if __name__ == '__main__':
     # TODO: Handle object as attribute value {{ }}  ->  { }
+    # TODO: Handle JSX as attribute value
+    # TODO: Handle function as attribute value
 
     main()
