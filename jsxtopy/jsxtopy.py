@@ -44,7 +44,9 @@ def clean_vals(jsx):
             in_quote = False
             end_tag = False
             for attrib in attribs:
-                if attrib[0] == '<':  # Skip tag
+                if attrib[0] == '<':  # Skip tag But fix fragment
+                    if attrib.strip() == '<' or attrib.strip() == '</':  # Fragment
+                        attrib = f'{attrib.strip()}Fragment'
                     new_attribs.append(attrib)
                     continue
 
@@ -127,6 +129,13 @@ def test():
       <Text>4</Text>
       <Text>5</Text>
     </SimpleGrid>""",
+        """<div></div>""",
+        """<>
+        <div>1</div>
+      <div mx=5 my=11>2</div>
+      <div>3</div>
+      </>
+        """,
         """<Group>
               <Button variant="outline">1</Button>
               <Button variant="outline">2</Button>
@@ -206,6 +215,5 @@ def main():
 if __name__ == '__main__':
     # TODO: Handle array as attribute value [ ]  -> [ ]
     # TODO: Handle object as attribute value {{ }}  ->  { }
-    # TODO: Handle fragment element <> </>  ->  Fragment(None)
 
     main()
