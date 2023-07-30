@@ -70,8 +70,8 @@ def clean_vals(jsx):
     return ''.join(new_jsx)
 
 
-# Recursively turns JSX string into string of functions
-def jsxtopy(jsx, level=1):
+# Recursively turns JSX string into string of function calls
+def jsxtopy(jsx, use_dict, level=1):
     INDENT = 4
 
     jsx_ = clean_vals(jsx)
@@ -99,11 +99,18 @@ def jsxtopy(jsx, level=1):
         tmp_jsx = ''.join(tmp_str_lst)  # Put it all back together
         # print("tmp_jsx:", tmp_jsx)
 
-        attrib_str = str(attribs) if len(element.attrib) > 0 else None  # Convert the whole attrib dict to a single string for later
+        if len(element.attrib) > 0:  # Convert the whole attrib dict to a single string for later
+            if use_dict:
+                attrib_str = ''.join(['dict(', ', '.join([f"{k}={repr(v)}" for k,v in attribs.items()]), ')'])
+            else:
+                attrib_str = str(attribs)
+        else:
+            attrib_str = None
+
         if len(element) > 0:  # There are child elements that need to be processed
             child_jsx = ''.join(child_str_lst)
             # print("child_jsx:", child_jsx)
-            children = jsxtopy(child_jsx, level + 1)  # Do the child conversions first
+            children = jsxtopy(child_jsx, use_dict, level + 1)  # Do the child conversions first
             py_root.append(f'{fmt_tag}({attrib_str},\n{" " * INDENT * level}{children}\n{" " * INDENT * (level - 1)})')
         else:  # InnerHTML is just text here
             text_child = '' if element.text is None else f', "{element.text.strip()}"'
@@ -112,14 +119,19 @@ def jsxtopy(jsx, level=1):
     return f',\n{" "*INDENT*(level-1)}'.join(py_root)
 
 
-def run(jsx):
-    print(f"\njsx:\n{jsx}\n")
-    pyified = jsxtopy(jsx)
-    print(f"pyified:\n{pyified}\n")
+def run(jsx, use_dict=False, verbose=False):
+    if verbose:
+        print(f"\njsx:\n{jsx}\n")
+    pyified = jsxtopy(jsx, use_dict)
+
+    if verbose:
+        print(f"pyified:")
+    print(f"\n{pyified}\n")
+
     return pyified
 
 
-def test():
+def test(use_dict):
     test_jsx = [
         '<div id="root">Loading...</div>',
         """<div id="root"><Button radius="md" size="lg" compact uppercase>Settings</Button></div>""",
@@ -180,9 +192,10 @@ def test():
             </Group>"""
     ]
 
+    print("--- TESTING ---\n")
     for jsx in test_jsx:
         print(f"jsx:\n{jsx}\n")
-        pyified = jsxtopy(jsx)
+        pyified = jsxtopy(jsx, use_dict)
         print(f"pyified:\n{pyified}\n")
         print()
 
@@ -190,23 +203,25 @@ def test():
 def main():
     parser = argparse.ArgumentParser(prog='jsxtopy', description='Converts a JSX fragment to a Python function equivalent')
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("'jsx'", help="JSX string to convert (If not supplied, will try to use what is in clipboard)", nargs='?', const='JSX copied from clipboard')
+    parser.add_argument("-v", "--verbose", help="Print original JSX and Python result to console", action="store_true")
+    parser.add_argument("-d", "--dict", help="Create props as dict function instead of dict literal", action="store_true")
+    group.add_argument("jsx", help="JSX string to convert (If not supplied, will try to use what is in clipboard)", nargs='?', const='JSX copied from clipboard')
     group.add_argument("--test", help="Run test JSX", action="store_true")
     args = parser.parse_args()
 
     if args.test:
-        print("--- TESTING ---\n")
-        test()
+        test(args.dict)
     else:
-        if len(sys.argv) > 1:
-            jsx_text = sys.argv[1]
-            run(jsx_text)
-            # print("sys.argv:", sys.argv)
+        if args.jsx:
+            jsx_text = args.jsx
+            run(jsx_text, use_dict=args.dict, verbose=args.verbose)
         else:
-            print("JSX not provided, using clipboard contents...")
+            if args.verbose:
+                print("JSX not provided, using clipboard contents...")
+
             jsx_text = pyperclip.paste()
             if jsx_text and jsx_text.strip()[0] == '<' and jsx_text.strip()[-1] == '>':
-                result = run(jsx_text)
+                result = run(jsx_text, use_dict=args.dict, verbose=args.verbose)
                 pyperclip.copy(result)
             else:
                 print("ERROR: Invalid JSX in clipboard!")
