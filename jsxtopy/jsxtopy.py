@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import sys
 
 import lxml.html
 import argparse
@@ -99,9 +98,10 @@ def jsxtopy(jsx, use_dict, level=1):
         tmp_jsx = ''.join(tmp_str_lst)  # Put it all back together
         # print("tmp_jsx:", tmp_jsx)
 
-        if len(element.attrib) > 0:  # Convert the whole attrib dict to a single string for later
+        # Convert the whole attrib dict to a single string for later
+        if len(element.attrib) > 0:
             if use_dict:
-                attrib_str = ''.join(['dict(', ', '.join([f"{k}={repr(v)}" for k,v in attribs.items()]), ')'])
+                attrib_str = ''.join(['dict(', ', '.join([f"{k}={repr(v)}" for k, v in attribs.items()]), ')'])
             else:
                 attrib_str = str(attribs)
         else:
@@ -112,7 +112,7 @@ def jsxtopy(jsx, use_dict, level=1):
             # print("child_jsx:", child_jsx)
             children = jsxtopy(child_jsx, use_dict, level + 1)  # Do the child conversions first
             py_root.append(f'{fmt_tag}({attrib_str},\n{" " * INDENT * level}{children}\n{" " * INDENT * (level - 1)})')
-        else:  # InnerHTML is just text here
+        else:  # Child is likely just text here
             text_child = '' if element.text is None else f', "{element.text.strip()}"'
             py_root.append(f'{fmt_tag}({attrib_str}{text_child})')
 
