@@ -49,15 +49,13 @@ def test_element_with_attrib_and_child_and_text():
 )"""
 
 
-@pytest.mark.skip(reason="Not able to evaluate bracketed JSX attrib values yet")
 def test_closed_component_with_component_attrib_value():
     jsx = """<TextInput label="Your email" placeholder="Your email" rightSection={<Loader size="xs" />} />"""
 
     result = jsxtopy.run(jsx)
-    assert result == """TextInput({'label': 'Your email', 'placeholder': 'Your email', 'rightsection': Loader({'size': 'xs'}))"""
+    assert result == """TextInput({'label': 'Your email', 'placeholder': 'Your email', 'rightsection': "Loader({'size': 'xs'})"})"""
 
 
-@pytest.mark.skip(reason="Not able to evaluate bracketed JSX attrib values yet")
 def test_component_fragment_with_component_attrib_value():
     jsx = """<>
       <Input component="button">Button input</Input>
@@ -71,9 +69,10 @@ def test_component_fragment_with_component_attrib_value():
     result = jsxtopy.run(jsx)
     assert result == """Fragment(None,
     Input({'component': 'button'}, "Button input"),
-    Input({'component': 'select', 'rightsection': IconChevronDown({'size': 14, 'stroke': 1.5})}),
-    Option({'value': 1}, "1"),
-    Option({'value': 2}, "2")
+    Input({'component': 'select', 'rightsection': "IconChevronDown({'size': 14, 'stroke': 1.5})"},
+        Option({'value': 1}, "1"),
+        Option({'value': 2}, "2")
+    )
 )"""
 
 

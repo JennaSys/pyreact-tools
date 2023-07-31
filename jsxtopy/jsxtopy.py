@@ -27,10 +27,15 @@ def quote_dict(str_dict):
 
 
 # Not all attribute values need to be strings...
-def to_num(str_val):
+def fmt_val(str_val, use_dict):
     if str_val:
         try:
-            if str_val.lower() in ['true', 'false']:
+            if str_val[0] == '{' and str_val[-1] == '}':
+                quoted_dict = quote_dict(str_val)  # Make sure keys are quoted
+                return ast.literal_eval(quoted_dict)
+            elif str_val.strip()[0] == '<' and str_val.strip()[-1] == '>':  # JSX as value
+                return jsxtopy(str_val.strip(), use_dict)
+            elif str_val.lower() in ['true', 'false']:
                 return str_val.lower() == 'true'
             elif '.' in str_val:
                 return float(str_val)
@@ -49,9 +54,6 @@ def to_num(str_val):
                     return new_list
                 else:
                     return ast.literal_eval(str_val)
-            elif str_val[0] == '{' and str_val[-1] == '}':
-                quoted_dict = quote_dict(str_val)  # Make sure keys are quoted
-                return ast.literal_eval(quoted_dict)
             else:
                 return int(str_val)
 
@@ -63,10 +65,14 @@ def to_num(str_val):
 
 # Fixes escaped attribute values and attribute singletons,
 def clean_vals(jsx):
-    jsx_parts = [f'{child}'.strip() for child in jsx.split('>')][:-1]
+    jsx_parts = [f'{child}'.strip() for child in jsx.split('>')]
     new_jsx = []
+    in_jsx_value = False
     for part in jsx_parts:
-        if part[0] == '<':
+        if not part:
+            continue
+
+        if part[0] == '<' or in_jsx_value:
             attribs = part.split()
             new_attribs = []
             in_quote = False
@@ -80,7 +86,7 @@ def clean_vals(jsx):
                     new_attribs.append(attrib)
                     continue
 
-                # Handle array as value
+                # Handle array as value by quoting it for now
                 if not in_array:
                     if "[" in attrib:
                         in_array = True
@@ -90,7 +96,7 @@ def clean_vals(jsx):
                         in_array = False
                         attrib = attrib.replace(']}', ']"').replace('] }', ']"')
 
-                # Handle dict as value
+                # Handle dict as value by quoting it for now
                 if not in_dict:
                     if "{{" in attrib:
                         in_dict = True
@@ -100,9 +106,19 @@ def clean_vals(jsx):
                         in_dict = False
                         attrib = attrib.replace('}}', '}"').replace('} }', '}"')
 
+               # Handle JSX as value by quoting it for now
+                if not in_jsx_value:
+                    if "{<" in attrib or "{ <" in attrib:
+                        in_jsx_value = True
+                        attrib = attrib.replace("{<", "'<").replace("{ <", "'<")
+                else:
+                    if attrib.strip()[0] == "}":
+                        in_jsx_value = False
+                        attrib = attrib.replace('}', "'")
+
                 end_quote = attrib.strip()[-1] in ["'", '"']
-                in_quote = any([in_quote, "'" in attrib, '"' in attrib]) and not (end_quote or in_array or in_dict)
-                if in_quote or end_quote or in_array or in_dict:  # Skip quoted strings
+                in_quote = any([in_quote, "'" in attrib, '"' in attrib]) and not any([end_quote, in_array, in_dict, in_jsx_value])
+                if any([in_quote, end_quote, in_array, in_dict, in_jsx_value]):  # Skip quoted strings
                     new_attribs.append(attrib)
                     continue
 
@@ -112,7 +128,9 @@ def clean_vals(jsx):
                 end_tag = not end_tag and attrib.strip()[-1] == '>'
 
                 new_attribs.append(attrib.replace('{', '').replace('}', ''))  # Remove any {} from values
-            new_jsx.append(f"{' '.join(new_attribs)}>")
+
+            new_attribs_str = f"{' '.join(new_attribs)}>"
+            new_jsx.append(new_attribs_str)  # JSX as attrib value might have uneccessary closing bracket
         else:
             new_jsx.append(f"{part}>")
 
@@ -132,12 +150,15 @@ def jsxtopy(jsx, use_dict, level=1):
     tmp_jsx = jsx_
 
     for element in fragments:  # The jsx parameter could be a list of many elements, so loop through them all
+        if len(tmp_jsx) == 0:
+            continue
         tag = tmp_jsx.strip().split('>')[0].split()[0][1:] if tmp_jsx.strip() else '' # lxml forces lower case so grab the tag name from the raw text, stripping off any attributes
         fmt_tag = tag.capitalize() if tag.islower() else tag  # Native HTML tags like 'div' need to get capitalized
-        attribs = {k: to_num(v) for k, v in element.attrib.items()}  # Represent numeric values as numbers instead of strings
+        attribs = {k: fmt_val(v, use_dict) for k, v in element.attrib.items()}  # Represent numeric values as numbers instead of strings
 
         # This sets things up for getting the proper tag next in the next pass through the loop
-        tmp_str_lst = [f'<{child}'.strip() for child in tmp_jsx.split('<')][2:]
+        tmp_str_lst = [f'<{child}'.strip() for child in tmp_jsx.split('<')]
+        tmp_str_lst = tmp_str_lst[2:] if any(['>' in item for item in tmp_str_lst[:2]]) else tmp_str_lst[3:]  # Skip over any JSX in attrib values
         if f'</{tag}>' in tmp_str_lst:
             idx = [tmp for tmp in tmp_str_lst].index(f'</{tag}>')
             if idx == 0:
@@ -158,13 +179,20 @@ def jsxtopy(jsx, use_dict, level=1):
         else:
             attrib_str = None
 
-        if len(element) > 0:  # There are child elements that need to be processed
+        if len(element) > 0 or len(child_str_lst) > 0:  # There are child elements that need to be processed
             child_jsx = ''.join(child_str_lst)
             # print("child_jsx:", child_jsx)
             children = jsxtopy(child_jsx, use_dict, level + 1)  # Do the child conversions first
             py_root.append(f'{fmt_tag}({attrib_str},\n{" " * INDENT * level}{children}\n{" " * INDENT * (level - 1)})')
+            child_str_lst = ''
         else:  # Child is likely just text here
-            text_child = '' if element.text is None else f', "{element.text.strip()}"'
+            if element.text is not None:
+                text_child = f', "{element.text.strip()}"'
+            elif element.tail is not None:
+                text_child = f', "{element.tail.strip()}"'
+            else:
+                text_child = ''
+
             py_root.append(f'{fmt_tag}({attrib_str}{text_child})')
 
     return f',\n{" "*INDENT*(level-1)}'.join(py_root)
@@ -183,27 +211,15 @@ def run(jsx, use_dict=False, verbose=False):
 
 
 def run_dev(use_dict):
-    test_jsx = ["""<>
-    <MultiSelect data={[
-      { value: 'React', label: 'React' },
-      { value: 'Angular', label: 'Angular' },
-      { value: 'Svelte', label: 'Svelte' },
-      { value: 'Vue', label: 'Vue' },
-    ]} />
-    <Slider
-      marks={[
-        { value: 20, label: '20%' },
-        { value: 50, label: '50%' },
-        { value: 80, label: '80%' },
-      ]}
-    />
-    </>""",
-        """<NativeSelect
-                      data={['React', 'Vue', 'Angular', 'Svelte']}
-                      label="Select your favorite framework/library"
-                      description="This is anonymous"
-                      withAsterisk
-                    />"""
+    test_jsx = [
+        """<>
+      <Input component="button">Button input</Input>
+
+      <Input component="select" rightSection={<IconChevronDown size={14} stroke={1.5} />}>
+        <option value="1">1</option>
+        <option value="2">2</option>
+      </Input>
+    </>"""
         ]
 
     print("--- DEV TESTING ---\n")
