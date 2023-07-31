@@ -19,11 +19,11 @@ Div({'id': 'root'},
 """
 
 
-def quote_str(strval):
-    strval = strval.strip()
-    if strval[0] not in ['"', "'"]:
-        strval = f"'{strval}'"
-    return strval
+def quote_dict(str_dict):
+    dict_items = [item.split(':') for item in str_dict.strip()[1:-1].split(',')]
+    quoted_items = [f"""{k.strip() if k[0] in ['"', "'"] else f"'{k.strip()}'"}: {v}""" for k, v in dict_items]
+    quoted_dict = f"{{{', '.join(quoted_items)}}}"
+    return quoted_dict
 
 
 # Not all attribute values need to be strings...
@@ -35,12 +35,22 @@ def to_num(str_val):
             elif '.' in str_val:
                 return float(str_val)
             elif str_val[0] == '[' and str_val[-1] == ']':
-                return ast.literal_eval(str_val)
+                if '{' in str_val and '}' in str_val:  #Assume list of dicts
+                    new_list = []
+                    for item in str_val.strip()[1:-1].split('}'):
+                        item = item.strip().strip(',').strip()  # Remove any leading or trailing commas
+                        if not item:
+                            continue
+
+                        if item[0] == '{':  # Make sure this is a dict
+                            new_list.append(ast.literal_eval(quote_dict(f"{item}}}")))
+                        else:
+                            new_list.append(item)
+                    return new_list
+                else:
+                    return ast.literal_eval(str_val)
             elif str_val[0] == '{' and str_val[-1] == '}':
-                # Make sure keys are quoted
-                items = [item.split(':') for item in str_val[1:-1].split(',')]
-                quoted_items = [f"{quote_str(k)}: {v}" for k, v in items]
-                quoted_dict = f"{{{', '.join(quoted_items)}}}"
+                quoted_dict = quote_dict(str_val)  # Make sure keys are quoted
                 return ast.literal_eval(quoted_dict)
             else:
                 return int(str_val)
@@ -173,15 +183,28 @@ def run(jsx, use_dict=False, verbose=False):
 
 
 def run_dev(use_dict):
-    test_jsx = ["""<Select
-      maw={320}
-      mx="auto"
-      label="Your favorite framework/library"
-      placeholder="Pick one"
-      data={['React', 'Angular', 'Svelte', 'Vue']}
-      transitionProps={{ transition: 'pop-top-left', duration: 80, timingFunction: 'ease' }}
-      withinPortal
-    />"""]
+    test_jsx = ["""<>
+    <MultiSelect data={[
+      { value: 'React', label: 'React' },
+      { value: 'Angular', label: 'Angular' },
+      { value: 'Svelte', label: 'Svelte' },
+      { value: 'Vue', label: 'Vue' },
+    ]} />
+    <Slider
+      marks={[
+        { value: 20, label: '20%' },
+        { value: 50, label: '50%' },
+        { value: 80, label: '80%' },
+      ]}
+    />
+    </>""",
+        """<NativeSelect
+                      data={['React', 'Vue', 'Angular', 'Svelte']}
+                      label="Select your favorite framework/library"
+                      description="This is anonymous"
+                      withAsterisk
+                    />"""
+        ]
 
     print("--- DEV TESTING ---\n")
     for jsx in test_jsx:

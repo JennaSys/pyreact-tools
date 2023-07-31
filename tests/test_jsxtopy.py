@@ -214,7 +214,6 @@ def test_nested_component_group_withandwithout_attrib_and_children_and_numvals_a
 )"""
 
 
-@pytest.mark.skip(reason="Not able to evaluate objects as array values in attrib value yet")
 def test_fragment_closed_components_with_array_of_objects_as_attrib_values():
     jsx = """<>
     <MultiSelect data={[
@@ -234,8 +233,8 @@ def test_fragment_closed_components_with_array_of_objects_as_attrib_values():
 
     result = jsxtopy.run(jsx)
     assert result == """Fragment(None,
-    MultiSelect({'data': [{ 'value': 'React', 'label': 'React' }, { 'value': 'Angular', 'label': 'Angular' }, { 'value': 'Svelte', 'label': 'Svelte' }, { 'value': 'Vue', 'label': 'Vue' }]}),
-    Slider({'marks': "[{ 'value': 20, 'label': '20%' }, { 'value': 50, 'label': '50%' }, { 'value': 80, 'label': '80%' }]"})
+    MultiSelect({'data': [{'value': 'React', 'label': 'React'}, {'value': 'Angular', 'label': 'Angular'}, {'value': 'Svelte', 'label': 'Svelte'}, {'value': 'Vue', 'label': 'Vue'}]}),
+    Slider({'marks': [{'value': 20, 'label': '20%'}, {'value': 50, 'label': '50%'}, {'value': 80, 'label': '80%'}]})
 )"""
 
 
