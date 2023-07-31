@@ -49,14 +49,14 @@ def test_element_with_attrib_and_child_and_text():
 )"""
 
 
-def test_closed_component_with_component_attrib_value():
+def test_closed_component_with_jsx_component_attrib_value():
     jsx = """<TextInput label="Your email" placeholder="Your email" rightSection={<Loader size="xs" />} />"""
 
     result = jsxtopy.run(jsx)
     assert result == """TextInput({'label': 'Your email', 'placeholder': 'Your email', 'rightsection': "Loader({'size': 'xs'})"})"""
 
 
-def test_component_fragment_with_component_attrib_value():
+def test_component_fragment_with_jsx_component_attrib_value():
     jsx = """<>
       <Input component="button">Button input</Input>
 
@@ -257,6 +257,7 @@ def test_nested_component_with_everything():
       radius="lg"
       color="red"
       disabled
+      rightSection={<IconChevronDown size={14} stroke={1.5} />}
     />
     <SimpleGrid cols={3}>
       <div>1</div>
@@ -278,7 +279,7 @@ def test_nested_component_with_everything():
     Button({'variant': 'outline'}, "2"),
     NativeSelect({'data': ['React', 'Vue', 'Angular', 'Svelte'], 'label': 'Select your favorite framework/library', 'description': 'This is anonymous', 'withasterisk': True}),
     Button({'p': 5.2, 'radius': 'sm md', 'size': 'lg', 'compact': True, 'uppercase': True}, "Settings"),
-    Switch({'labelposition': 'left', 'label': 'I agree to sell my privacy', 'size': 'md', 'radius': 'lg', 'color': 'red', 'disabled': True}),
+    Switch({'labelposition': 'left', 'label': 'I agree to sell my privacy', 'size': 'md', 'radius': 'lg', 'color': 'red', 'disabled': True, 'rightsection': "IconChevronDown({'size': 14, 'stroke': 1.5})"}),
     SimpleGrid({'cols': 3},
         Div(None, "1"),
         Div({'mx': 7, 'my': 2}, "2"),
