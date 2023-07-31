@@ -19,6 +19,13 @@ Div({'id': 'root'},
 """
 
 
+def quote_str(strval):
+    strval = strval.strip()
+    if strval[0] not in ['"', "'"]:
+        strval = f"'{strval}'"
+    return strval
+
+
 # Not all attribute values need to be strings...
 def to_num(str_val):
     if str_val:
@@ -29,6 +36,12 @@ def to_num(str_val):
                 return float(str_val)
             elif str_val[0] == '[' and str_val[-1] == ']':
                 return ast.literal_eval(str_val)
+            elif str_val[0] == '{' and str_val[-1] == '}':
+                # Make sure keys are quoted
+                items = [item.split(':') for item in str_val[1:-1].split(',')]
+                quoted_items = [f"{quote_str(k)}: {v}" for k, v in items]
+                quoted_dict = f"{{{', '.join(quoted_items)}}}"
+                return ast.literal_eval(quoted_dict)
             else:
                 return int(str_val)
 
@@ -48,6 +61,7 @@ def clean_vals(jsx):
             new_attribs = []
             in_quote = False
             in_array = False
+            in_dict = False
             end_tag = False
             for attrib in attribs:
                 if attrib[0] == '<':  # Skip tag But fix fragment
@@ -66,9 +80,19 @@ def clean_vals(jsx):
                         in_array = False
                         attrib = attrib.replace(']}', ']"').replace('] }', ']"')
 
+                # Handle dict as value
+                if not in_dict:
+                    if "{{" in attrib:
+                        in_dict = True
+                        attrib = attrib.replace('{{', '"{').replace('{ {', '"{')
+                else:
+                    if "}}" in attrib:
+                        in_dict = False
+                        attrib = attrib.replace('}}', '}"').replace('} }', '}"')
+
                 end_quote = attrib.strip()[-1] in ["'", '"']
-                in_quote = any([in_quote, "'" in attrib, '"' in attrib]) and not (end_quote or in_array)
-                if in_quote or end_quote or in_array:  # Skip quoted strings
+                in_quote = any([in_quote, "'" in attrib, '"' in attrib]) and not (end_quote or in_array or in_dict)
+                if in_quote or end_quote or in_array or in_dict:  # Skip quoted strings
                     new_attribs.append(attrib)
                     continue
 
@@ -202,7 +226,6 @@ def main():
 
 
 if __name__ == '__main__':
-    # TODO: Handle object as attribute value {{ }}  ->  { }
     # TODO: Handle JSX as attribute value
     # TODO: Handle function as attribute value
 

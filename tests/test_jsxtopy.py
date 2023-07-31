@@ -101,7 +101,6 @@ def test_closed_component_with_attrib_having_array_value_usedict():
     assert result == """NativeSelect(dict(data=['React', 'Vue', 'Angular', 'Svelte'], label='Select your favorite framework/library', description='This is anonymous', withasterisk=True))"""
 
 
-@pytest.mark.skip(reason="Not able to evaluate bracketed dict attrib values yet")
 def test_closed_component_with_attrib_having_dict_value():
     jsx = """<Select
       maw={320}
@@ -113,9 +112,8 @@ def test_closed_component_with_attrib_having_dict_value():
       withinPortal
     />"""
 
-    result = jsxtopy.run(jsx, use_dict=True)
-    assert result == """Select({'maw': 320, 'mx': 'auto', 'label': 'Your favorite framework/library', 'placeholder': 'Pick one', 'data': ['React', 'Angular', 'Svelte', 'Vue'], 'transitionprops': {'transition': 'pop-top-left', 'duration': 80, 'timingfunction:': 'ease'}, 'withinportal': True})
-"""
+    result = jsxtopy.run(jsx)
+    assert result == """Select({'maw': 320, 'mx': 'auto', 'label': 'Your favorite framework/library', 'placeholder': 'Pick one', 'data': ['React', 'Angular', 'Svelte', 'Vue'], 'transitionprops': {'transition': 'pop-top-left', 'duration': 80, 'timingFunction': 'ease'}, 'withinportal': True})"""
 
 
 def test_component_withandwithout_attrib_and_children_and_numvals_and_text():
