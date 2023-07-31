@@ -212,14 +212,30 @@ def run(jsx, use_dict=False, verbose=False):
 
 def run_dev(use_dict):
     test_jsx = [
-        """<>
-      <Input component="button">Button input</Input>
-
-      <Input component="select" rightSection={<IconChevronDown size={14} stroke={1.5} />}>
-        <option value="1">1</option>
-        <option value="2">2</option>
-      </Input>
-    </>"""
+        """<MultiSelect
+  valueComponent={({ value, label, image, name }) => /* Your custom value component with data properties */}
+  itemComponent={({ value, label, image, name }) => /* Your custom item component with data properties */}
+  data={[
+    {
+      value: 'bob@handsome.inc',
+      label: 'bob@handsome.inc',
+      image: 'image-link',
+      name: 'Bob Handsome',
+    },
+    {
+      value: 'bill@outlook.com',
+      label: 'bill@outlook.com',
+      image: 'image-link',
+      name: 'Bill Rataconda',
+    },
+    {
+      value: 'amy@wong.cn',
+      label: 'amy@wong.cn',
+      image: 'image-link',
+      name: 'Amy Wong',
+    },
+  ]}
+/>"""
         ]
 
     print("--- DEV TESTING ---\n")
@@ -265,7 +281,7 @@ def main():
 
 
 if __name__ == '__main__':
-    # TODO: Handle JSX as attribute value
     # TODO: Handle function as attribute value
+    # TODO: Refactor to use re to try and clean up some of the hacky mess
 
     main()
