@@ -282,6 +282,6 @@ def main():
 
 if __name__ == '__main__':
     # TODO: Handle function as attribute value
-    # TODO: Refactor to use re to try and clean up some of the hacky mess
+    # TODO: Refactor to use re to try and clean up some of the hacky mess of code - ref gpt11 to get tags and gpt7 to lookup elements
 
     main()
